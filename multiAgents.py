@@ -14,6 +14,7 @@
 
 from util import manhattanDistance
 from game import Directions
+from math import inf
 import random, util
 
 from game import Agent
@@ -59,7 +60,7 @@ class ReflexAgent(Agent):
         GameStates (pacman.py) and returns a number, where higher numbers are better.
 
         The code below extracts some useful information from the state, like the
-        remaining food (newFood) and Pacman position after moving (newPos).
+        remaining food (newFood) and Pacman position after moving (newPosition).
         newScaredTimes holds the number of moves that each ghost will remain
         scared because of Pacman having eaten a power pellet.
 
@@ -68,13 +69,30 @@ class ReflexAgent(Agent):
         """
         # Useful information you can extract from a GameState (pacman.py)
         successorGameState = currentGameState.generatePacmanSuccessor(action)
-        newPos = successorGameState.getPacmanPosition()
-        newFood = successorGameState.getFood()
+        newPosition = successorGameState.getPacmanPosition()
+        currentFood = currentGameState.getFood()
         newGhostStates = successorGameState.getGhostStates()
-        newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
-        "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        # Don't go where ghosts could go
+        badGhostPositions = [ghostState.getPosition() for ghostState in newGhostStates if ghostState.scaredTimer == 0]
+        for (x, y) in badGhostPositions:
+            x = int(x)
+            y = int(y)
+            for (xAdj, yAdj) in [(0, 0), (1, 0), (0, 1), (-1, 0), (0, -1)]:
+                nearPos = (x + xAdj, y + yAdj)
+                if(newPosition == nearPos):
+                    return -inf
+
+        # Go to nearest food
+        closestFoodDistance = inf
+        for x, row in enumerate(currentFood):
+            for y, food in enumerate(row):
+                if(food):
+                    foodDistance = manhattanDistance(newPosition, (x, y))
+                    if(foodDistance < closestFoodDistance):
+                        closestFoodDistance = foodDistance
+
+        return successorGameState.getScore() - closestFoodDistance
 
 def scoreEvaluationFunction(currentGameState):
     """
