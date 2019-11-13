@@ -186,6 +186,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
             return self.minValue(gameState, agentIndex, depth)
              
 
+# This could be nicer, but I ran out of time...
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
     Your minimax agent with alpha-beta pruning (question 3)
@@ -195,8 +196,60 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
         Returns the minimax action using self.depth and self.evaluationFunction
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        agentIndex = 0
+
+        A = -inf
+        B = inf
+        bestAction = None
+        bestValue = -inf
+        for action in gameState.getLegalActions(agentIndex):
+            successorState = gameState.generateSuccessor(agentIndex, action)
+            successorValue = self.value(successorState, agentIndex + 1, 0, A, B)
+            if(bestValue < successorValue):
+                bestValue = successorValue
+                bestAction = action
+
+            if bestValue > B:
+                return bestAction
+            A = max(A, bestValue)
+
+        return bestAction
+        
+    def maxValue(self, gameState, agentIndex, depth, A, B):
+        stateValue = -inf
+        for action in gameState.getLegalActions(agentIndex):
+            successorState = gameState.generateSuccessor(agentIndex, action)
+            successorValue = self.value(successorState, agentIndex + 1, depth, A, B)
+            stateValue = max(stateValue, successorValue)
+            if stateValue > B:
+                return stateValue
+            A = max(A, stateValue)
+        return stateValue
+    
+    def minValue(self, gameState, agentIndex, depth, A, B):
+        stateValue = inf
+        for action in gameState.getLegalActions(agentIndex):
+            successorState = gameState.generateSuccessor(agentIndex, action)
+            successorValue = self.value(successorState, agentIndex + 1, depth, A, B)
+            stateValue = min(stateValue, successorValue)
+            if stateValue < A:
+                return stateValue
+            B = min(B, stateValue)
+        return stateValue
+
+    def value(self, gameState, agentIndex, depth, A, B):
+        if(agentIndex >= gameState.getNumAgents()):
+            agentIndex = 0
+            depth = depth + 1
+
+        if(gameState.isWin() or gameState.isLose() or depth >= self.depth):
+            # Terminal state
+            return self.evaluationFunction(gameState)
+
+        if(agentIndex == 0):
+            return self.maxValue(gameState, agentIndex, depth, A, B)
+        else:
+            return self.minValue(gameState, agentIndex, depth, A, B)
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
